@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="d9ab7bdd-a6fe-47e4-a7ac-0ea2dfc34e09" name="123" url="http://127.0.0.1">
+        <fileTransfer host="127.0.0.1" port="22033" privateKey="C:\Users\seeta-xpc\.ssh\17host" rootFolder="/code/disk1/xupeichao/OCR" accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22033" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
