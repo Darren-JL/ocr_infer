@@ -32,15 +32,14 @@ from meter_ocr.det import DET
 from meter_ocr.tps import TPS
 from meter_ocr.rnn import RNN
 from meter_ocr.ecs import encrypt_check
-
-PATH = os.path.realpath(__package__)
+import pkg_resources
 
 
 class Interface(object):
     def __init__(self,
-                 det_weights=os.path.join(PATH, 'det.pb'),
-                 tps_weights=os.path.join(PATH, 'tps.pb'),
-                 rnn_weights=os.path.join(PATH, 'rnn.pb'),
+                 det_weights=pkg_resources.resource_filename('meter_ocr', 'data/det.pb'),
+                 tps_weights=pkg_resources.resource_filename('meter_ocr', 'data/tps.pb'),
+                 rnn_weights=pkg_resources.resource_filename('meter_ocr', 'data/rnn.pb'),
                  allow_growth=True,
                  allow_soft_placement=True,
                  log_device_placement=False):
@@ -61,7 +60,13 @@ class Interface(object):
             1: 'no target detected',
         }
 
-    def crop_with_box(self, img, box, scale=1.25):
+    def crop_area(self, img, box, scale=1.25):
+        '''
+        :param img: bgr,3channel,cv2.UMat
+        :param box: [xmin, ymin, xmax, ymax]
+        :param scale: scale rectangle at center
+        :return:
+        '''
         assert isinstance(scale, float)
         src_h, src_w = img.shape[:2]
         x0, y0, x1, y1 = np.int32(box)
@@ -95,7 +100,7 @@ class Interface(object):
                 return result
             x0, y0, x1, y1, cls, score = boxes[0]
             result['bndbox'] = [x0, y0, x1, y1, score]
-            roi = self.crop_with_box(img, [x0, y0, x1, y1], scale=1.25)
+            roi = self.crop_area(img, [x0, y0, x1, y1], scale=1.25)
             points = self.tps_model.predict(roi)
             _pts = points.copy()
             _pts[:, 0] = _pts[:, 0] + x0

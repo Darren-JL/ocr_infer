@@ -27,10 +27,10 @@ from __future__ import absolute_import, division, print_function
 import os
 import time
 import pickle
-import hashlib
+import pkg_resources
 
-PATH = os.path.realpath(__package__)
-ECS_FILE = os.path.join(PATH, 'ecs.pb')
+ECS_FILE = pkg_resources.resource_filename('meter_ocr', 'data/ecs.pb')
+
 SECRET = "77812214"
 MAX_DAYS = 50
 TIME_FORMAT = "%Y-%m-%d"
@@ -62,11 +62,13 @@ def encrypt_check():
             raise RuntimeError("许可失效")
         if ftime not in data['ftime']:
             data['ftime'].append(ftime)
-            with open(ECS_FILE, 'wb', encoding='utf-8') as fout:
+            with open(ECS_FILE, 'wb') as fout:
                 pickle.dump(data, fout)
-        # print('剩余天数', MAX_DAYS - len(data['ftime']))
+                # print('剩余天数', MAX_DAYS - len(data['ftime']))
     except Exception:
         raise RuntimeError("许可失效")
+
+
 
 # def __encrypt_sha512_init(ptime=None):
 #     if ptime is None:

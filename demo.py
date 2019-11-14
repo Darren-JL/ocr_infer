@@ -55,7 +55,7 @@ class MeterElecOCR(Interface):
 
         if len(boxes) > 0:
             x0, y0, x1, y1, cls, score = boxes[0]
-            roi = self.crop_with_box(image, [x0, y0, x1, y1], scale=1.25)
+            roi = self.crop_area(image, [x0, y0, x1, y1], scale=1.25)
 
             # 校正待识别区域
             points = self.tps_model.predict(roi)  # points: [lt, rt, rb, lb], shape: (4, 2)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     import cv2
 
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
     elec_model = MeterElecOCR()
 
