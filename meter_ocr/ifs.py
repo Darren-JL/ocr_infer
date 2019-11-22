@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import time
+import traceback
 import numpy as np
 
 from meter_ocr.det import DET
@@ -33,6 +34,8 @@ from meter_ocr.tps import TPS
 from meter_ocr.rnn import RNN
 from meter_ocr.ecs import encrypt_check
 import pkg_resources
+
+encrypt_check()
 
 
 class Interface(object):
@@ -47,8 +50,6 @@ class Interface(object):
         assert os.path.exists(det_weights), det_weights
         assert os.path.exists(tps_weights), tps_weights
         assert os.path.exists(rnn_weights), rnn_weights
-
-        encrypt_check()
 
         self.det_model = DET(det_weights, allow_growth, allow_soft_placement, log_device_placement)
         self.tps_model = TPS(tps_weights, allow_growth, allow_soft_placement, log_device_placement)
@@ -79,40 +80,56 @@ class Interface(object):
         xx1 = np.clip(int(xx0 + nw), 0, src_w)
         yy1 = np.clip(int(yy0 + nh), 0, src_h)
         roi = img[yy0:yy1, xx0:xx1, :].copy()
-        return roi
+        return roi, (xx0, yy0)
 
-    def _predict(self, img):
+    def expand_area(self, img, scale=1.25):
+        assert isinstance(scale, float)
+        src_h, src_w = img.shape[:2]
+        nw = int(src_w * scale)
+        nh = int(src_h * scale)
+        offset_x = (nw - src_w) // 2
+        offset_y = (nh - src_h) // 2
+        area = np.zeros(shape=(nh, nw, 3), dtype=img.dtype)
+        area[offset_y:offset_y + src_h, offset_x:offset_x + src_w, :] = img
+        return area, (-1.0 * offset_x, -1.0 * offset_y)
+
+    def _predict(self, img, has_det=True):
         '''param img: bgr, 3 channel, cv2.Mat'''
         result = {
             'code': 0,
             'time': 0,
             'message': self.message[0],
             'bndbox': [],
-            'points': [],
+            'polygon': [],
             'text': [],
         }
         try:
             t_start = time.time()
-            boxes = self.det_model.predict(img)
-            if len(boxes) == 0:
-                result['code'] = 1
-                result['message'] = self.message[1]
-                return result
-            x0, y0, x1, y1, cls, score = boxes[0]
+            if has_det:
+                boxes = self.det_model.predict(img)
+                if len(boxes) == 0:
+                    result['code'] = 1
+                    result['message'] = self.message[1]
+                    return result
+                x0, y0, x1, y1, cls, score = boxes[0]
+                roi, offset = self.crop_area(img, [x0, y0, x1, y1], scale=1.25)
+            else:
+                src_h, src_w = img.shape[:2]
+                x0, y0, x1, y1, score = 0, 0, src_w, src_w, 1.0
+                roi, offset = self.expand_area(img, scale=1.25)
             result['bndbox'] = [x0, y0, x1, y1, score]
-            roi = self.crop_area(img, [x0, y0, x1, y1], scale=1.25)
             points = self.tps_model.predict(roi)
             _pts = points.copy()
-            _pts[:, 0] = _pts[:, 0] + x0
-            _pts[:, 1] = _pts[:, 1] + y1
-            result['points'] = _pts.tolist()
+            _pts[:, 0] = _pts[:, 0] + offset[0]
+            _pts[:, 1] = _pts[:, 1] + offset[1]
+            result['polygon'] = _pts.tolist()
             tfm_img = self.tps_model.transform(roi, points, dst_size=(320, 32))
             text = self.rnn_model.predict(tfm_img)
             result['time'] = time.time() - t_start
             result['text'] = text[0]
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             result['code'] = -1
-            result['message'] = self.message[-1]
+            result['message'] = str(e)
 
         return result

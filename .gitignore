@@ -1,4 +1,6 @@
 .idea
 *.pb
 *.jpg
+*.pyc
+__pycache__
 build

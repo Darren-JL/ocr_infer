@@ -26,4 +26,4 @@ from __future__ import absolute_import, division, print_function
 
 from meter_ocr import ecs
 
-ecs.__encrypt_init('2019-11-12')
+ecs.__encrypt_init('2019-11-22')

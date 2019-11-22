@@ -22,4 +22,28 @@ Bugs fixed:
 
 - None
 
+------------------------------------------------------------------------
+
+MeterOCR 0.0.10 (20191114)
+
+Tensorflow Minimum Required (Version 1.6)
+
+Changes:
+
+- Add Web Services
+
+Preview Features:
+
+- Init repository.
+
+- Det Models Path: /code/disk1/xxx/data/dianbiao/data_v1/ssd/v2/model.pb
+
+- Tps Models Path: /code/disk1/xxx/data/dianbiao/data_v1/four_pts/v3/exports/model_40000.pb
+
+- Rnn Models Path: /code/disk1/xxx/data/dianbiao/data_v1/crnn/v1/exports/model_178000.pb
+
+Bugs fixed:
+
+- resource file path error
+
 

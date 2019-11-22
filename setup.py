@@ -19,6 +19,7 @@
 # @Author  : peichao.xu
 # @Email   : xj563853580@outlook.com
 # @File    : setup.py
+# @Usage   : python setup.py sdist bdist_wheel
 
 # ==============================================================================
 
@@ -64,10 +65,10 @@ def find_package_data():
 
 setuptools.setup(
     name='MeterOCR',
-    version='0.0.9',
+    version='0.1.0',
     packages=find_packages(),
     license='BSD 2-Clause',
-    install_requires=['tensorflow == 1.6', 'matplotlib', 'opencv-python'],
+    install_requires=['tensorflow == 1.6', 'matplotlib', 'opencv-python', 'tornado'],
     package_data={'meter_ocr': find_package_data()},
     cmdclass={'bdist_wheel': bdist_wheel},
     classifiers=[

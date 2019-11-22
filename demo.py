@@ -35,9 +35,9 @@ class MeterElecOCR(Interface):
             >>> elec_model = MeterElecOCR()
             >>> result = elec_model.predict(cv2.UMat)
         """
-        return self._predict(img)
+        return self._predict(img, has_det=True)
 
-    def vis_demo(self, image):
+    def vis_demo_has_det(self, image):
         """接口调用演示，可自定义调试
 
         Usage::
@@ -55,7 +55,7 @@ class MeterElecOCR(Interface):
 
         if len(boxes) > 0:
             x0, y0, x1, y1, cls, score = boxes[0]
-            roi = self.crop_area(image, [x0, y0, x1, y1], scale=1.25)
+            roi, offset = self.crop_area(image, [x0, y0, x1, y1], scale=1.25)
 
             # 校正待识别区域
             points = self.tps_model.predict(roi)  # points: [lt, rt, rb, lb], shape: (4, 2)
@@ -80,6 +80,37 @@ class MeterElecOCR(Interface):
         plt.show()
         # }
 
+    def vis_demo(self, image):
+        roi, offset = self.expand_area(image, scale=1.25)
+
+        # 校正待识别区域
+        points = self.tps_model.predict(roi)  # points: [lt, rt, rb, lb], shape: (4, 2)
+
+        # { 可视化
+        plt.subplot(221)
+        self.tps_model.visual(roi.copy(), points, save=False, show=False)
+        # }
+
+        # { 可视化
+        plt.subplot(222)
+        self.tps_model.visual(roi.copy(), points, save=False, show=False)
+        # }
+
+        tfm_img = self.tps_model.transform(roi, points, dst_size=(320, 32))
+
+        # { 可视化
+        plt.subplot(223)
+        self.tps_model.visual(tfm_img.copy(), None, save=False, show=False)
+        # }
+
+        # 识别文字内容
+        text = self.rnn_model.predict(tfm_img)
+
+        # { 可视化
+        plt.title(text[0])
+
+        plt.show()
+
 
 if __name__ == '__main__':
     import os
@@ -90,7 +121,7 @@ if __name__ == '__main__':
 
     elec_model = MeterElecOCR()
 
-    image_dir = 'images'
+    image_dir = 'meter_ocr/images'
     for filename in os.listdir(image_dir):
         image = cv2.imread(os.path.join(image_dir, filename))
         elec_model.vis_demo(image)

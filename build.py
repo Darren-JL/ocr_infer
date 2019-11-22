@@ -38,6 +38,14 @@ build_dir = "build"
 build_tmp_dir = build_dir + "/temp"
 
 
+class PyBuild(object):
+    def __init__(self):
+        pass
+
+    def build(self):
+        pass
+
+
 def getpy(basepath=os.path.abspath('.'), parentpath='', name='', excepts=(), copyOther=False, delC=False):
     """
     获取py文件的路径
